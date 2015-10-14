@@ -1,5 +1,5 @@
 function [sim_param,DANSE_param] = gen_param(source_sig,noise_sig)
-% GEN_PARAM - generate simualtion and DANSE parameters
+% GEN_PARAM - generate simulation and DANSE parameters
 % Syntax:  [] = frame_signal(node,sim_param)
 % generates frames of data for batch algorithms
 % Inputs:   source_sig      -   single channel desired source signal
