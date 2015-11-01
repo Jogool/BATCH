@@ -62,9 +62,6 @@ while ~or(convergence,ge(ii,DANSE_param.max_iter))
     cost_sum_DANSE = [cost_sum_DANSE sum(cat(1,node.cost))];
     convergence =  norm(cat(1,node.cent_cost) - ...
         cellfun(@(x) x(end), {node.cost})') < DANSE_param.thresh;
-%     %convergence =  or(norm(cat(1,node.cent_cost) - ...
-%         cellfun(@(x) x(end), {node.cost})') < DANSE_param.thresh, ...
-%         cost_sum_DANSE < sum_cent_cost);
     ii = ii + 1;  
     % round robin updating
     node_update=rem(node_update,sim_param.nb_nodes)+1;   

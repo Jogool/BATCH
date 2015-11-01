@@ -21,9 +21,8 @@ for frame_idx = 1:sim_param.nb_frames
     fs = (frame_idx-1)*(sim_param.fftL-sim_param.overlap ) + 1;     % start of frame
     fe = fs+sim_param.fftL-1;                                       % end of frame
     
-    % VAD based on energy at first sensor of first node.  Can place custom
-    % VAD code here to set VAD_dec variable
     VAD_dec = sumsqr(node(1).ss_clean(fs:fe,:)) > .5;
+    
     if VAD_dec
         % sim_param.ds_idx: counter for number of desired signal frames
         sim_param.ds_idx = sim_param.ds_idx + 1;

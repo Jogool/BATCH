@@ -14,12 +14,11 @@ function [node] = centralized_batch(node,DANSE_param,sim_param)
 %
 % Author: Joseph Szurley
 % email: joseph.szurley@esat.kuleuven.be
-% Oct. 2015; Last revision: 11-Oct-2015
+% Oct. 2015; Last revision: 31-Oct-2015
 %------------- BEGIN CODE --------------
 % initialize correlation matrices
 Ryy = zeros(DANSE_param.nb_nodes*DANSE_param.sensors,...
-    DANSE_param.nb_nodes*DANSE_param.sensors,...
-    sim_param.fftL/2+1);
+    DANSE_param.nb_nodes*DANSE_param.sensors);
 Rnn = Ryy;
 
 % collect desired source frames from all nodes
@@ -27,29 +26,18 @@ ds_frames = cat(1,node.ds_frame);
 % collect noise frames from all nodes
 n_frames =  cat(1,node.n_frame);
 
-for frame_idx = 1:sim_param.ds_idx;
-    for ll=1:sim_param.fftL/2+1
-        Y = ds_frames(:,ll,frame_idx);
-        Ryy(:,:,ll)=Ryy(:,:,ll)+Y*Y';
-    end
-end
-
-for frame_idx = 1:sim_param.n_idx;
-    for ll=1:sim_param.fftL/2+1
-        Y = n_frames(:,ll,frame_idx);
-        Rnn(:,:,ll)=Rnn(:,:,ll)+Y*Y';
-    end
-end
-
-Ryy = Ryy /  sim_param.ds_idx;
-Rnn = Rnn / sim_param.n_idx;
-%!!! change the following code to estimate Rxx
-Rxx = Ryy;
-%% filter and cost calculation
-% filter
 for ll=1:sim_param.fftL/2+1
-    W(:,:,ll) = (Rnn(:,:,ll)+Rxx(:,:,ll)) \ Rxx(:,:,ll);
+    Ryy = squeeze(ds_frames(:,ll,:))*squeeze(ds_frames(:,ll,:))';
+    Rnn = squeeze(n_frames(:,ll,:))*squeeze(n_frames(:,ll,:))';
+    Ryy = Ryy /  sim_param.ds_idx;
+    Rnn = Rnn / sim_param.n_idx;
+    %!!! change the following code to estimate Rxx
+    Rxx = Ryy;
+    % filter
+    W(:,:,ll) = (Rnn+Rxx) \ Rxx;
 end
+
+%% cost calculation
 % calculate cost and store centralized filter
 % idx_sen : sensor index
 idx_sen = 1;

@@ -14,44 +14,23 @@ function [node] = DANSE_init(node,sim_param,DANSE_param)
 %
 % Author: Joseph Szurley
 % email: joseph.szurley@esat.kuleuven.be
-% Oct. 2015; Last revision: 12-Oct-2015
+% Oct. 2015; Last revision: 31-Oct-2015
 %------------- BEGIN CODE --------------
-% inital cost variable
-[node.cost] = deal(0);
-%% generate initial broadcast signals
-for idx_node = 1:DANSE_param.nb_nodes;    
-    for frame_idx = 1:sim_param.ds_idx;
+nb_ds = DANSE_param.desired_sources;
+for idx_node = 1:sim_param.nb_nodes;
+    % initalize broadcast signals
+    node(idx_node).ZY = zeros(nb_ds,sim_param.fftL/2+1,sim_param.ds_idx);
+    node(idx_node).ZN = zeros(nb_ds,sim_param.fftL/2+1,sim_param.n_idx);
+    for idx_z = 1:nb_ds
         for ll=1:sim_param.fftL/2+1
-            node(idx_node).ZY(:,ll,frame_idx) = ...
-                node(idx_node).loc_filt_coeff(:,:,ll)'*node(idx_node).ds_frame(:,ll,frame_idx);
+            % find broadcast signals for every frame (sum(conj(W).*y = W'y)
+            node(idx_node).ZY(idx_z,ll,:) = ...
+                sum(bsxfun(@times,conj(node(idx_node).loc_filt_coeff(:,idx_z,ll)),node(idx_node).ds_frame(:,ll,:)));
+            node(idx_node).ZN(idx_z,ll,:) = ...
+                sum(bsxfun(@times,conj(node(idx_node).loc_filt_coeff(:,idx_z,ll)),node(idx_node).n_frame(:,ll,:)));
         end
     end
-    for frame_idx = 1:sim_param.n_idx;
-        for ll=1:sim_param.fftL/2+1
-            node(idx_node).ZN(:,ll,frame_idx) = ...
-                node(idx_node).loc_filt_coeff(:,:,ll)'*node(idx_node).n_frame(:,ll,frame_idx);
-        end
-    end
-    % broadcast signals in time domain (only used for cost calculation)
-    node(idx_node).zy = ...
-        filterwithW([node(idx_node).ss_clean],node(idx_node).loc_filt_coeff);
-    node(idx_node).zn = ...
-        filterwithW([node(idx_node).ss_noise],node(idx_node).loc_filt_coeff);
-    
 end
-%%  calculate initial cost
-for idx_node = 1:DANSE_param.nb_nodes;  
-    % find all nodes ~= to idx_node
-    idx = find(idx_node ~= 1:DANSE_param.nb_nodes);
-    % gather all W and G coefficients
-    W = cat(1, node(idx_node).loc_filt_coeff, node(idx_node).gkq.coeff);
-    % total received signal at node
-    y = [node(idx_node).ss_clean + node(idx_node).ss_noise [node(idx).zy]+[node(idx).zn]];
-    % estimated desired signal
-    dest = filterwithW(y,W);
-    % calculate cost
-    node(idx_node).cost = ...
-        norm(node(idx_node).ss_clean(:,1:DANSE_param.desired_sources) - dest)^2;
-end
+% calculate cost
+node = DANSE_cost(node,sim_param,DANSE_param);
 %------------- END OF CODE --------------
-
