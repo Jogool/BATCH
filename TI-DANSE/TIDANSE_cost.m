@@ -36,7 +36,7 @@ for idx_node =  1:sim_param.nb_nodes;
     % estimated desired signal
     idx = [idx_node idx_nodes];
     dest = filterwithW([node(idx).ss_clean]+[node(idx).ss_noise],W);
-        % calculate cost
+    % calculate cost
     node(idx_node).cost = ...
         norm(node(idx_node).ss_clean(:,1:nb_ds) - dest)^2;
 end
