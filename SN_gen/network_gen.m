@@ -71,6 +71,7 @@ for ii = 1:sim_param.nb_nodes
     
     % generate local filter coeff and Gkqs for all other nodes
     node(ii).loc_filt_coeff = repmat(eye(node(ii).sensors,DANSE_param.desired_sources),1,1,sim_param.fftL/2+1);
+    node(ii).P = node(ii).loc_filt_coeff;
 
     idx = find(ii ~= 1:DANSE_param.nb_nodes);
     for jj = idx

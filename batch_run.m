@@ -102,18 +102,51 @@ while ~or(convergence,ge(ii,DANSE_param.max_iter))
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
 end
 fprintf('\n')
+% reset node
+node = org_node;
+%% TI-DANSE
+fprintf('\n')
+disp('TI-DANSE')
+reverseStr = '';
+% initialize nodes for TI-DANSE algorithm
+node = TIDANSE_init(node,sim_param,DANSE_param);
+% inital cost
+cost_TIDANSE = cat(1,node.cost);
+% inital sum of costs
+cost_sum_TIDANSE = sum(cost_TIDANSE);
+% set node to start updating
+node_update = updateorder(1);
+ii = 1;
+% set convergence flag
+convergence = 0;
+% check if we have met either condition
+while ~or(convergence,ge(ii,DANSE_param.max_iter))
+    [node] = TIDANSE_batch(node,sim_param,DANSE_param,node_update);
+    cost_TIDANSE = [cost_TIDANSE cat(1,node.cost)];
+    cost_sum_TIDANSE = [cost_sum_TIDANSE sum(cat(1,node.cost))];
+    convergence =  norm(cat(1,node.cent_cost) - ...
+        cellfun(@(x) x(end), {node.cost})') < DANSE_param.thresh;
+    ii = ii + 1;  
+    % round robin updating
+    node_update=rem(node_update,sim_param.nb_nodes)+1;   
+    msg = sprintf('Iteration : %d', ii);
+    fprintf([reverseStr, msg]);
+    reverseStr = repmat(sprintf('\b'), 1, length(msg));
+end
+fprintf('\n')
 %% End matter
 figure
 hold on
 loglog(cost_sum_DANSE)
 loglog(cost_sum_TDANSE,'-xm')
+loglog(cost_sum_TIDANSE,'-dk')
 axis tight
 h =  refline(0,sum_cent_cost);
 set(h,'LineStyle','--');
 
 a = get(gca,'YLim');
 set(gca,'YLim',[sum([node.cent_cost]) - sum([node.cent_cost])*.1 a(2)])
-legend('DANSE', 'T-DANSE','Optimal');
+legend('DANSE', 'T-DANSE','TI-DANSE','Optimal');
 set(gca, 'XScale', 'log', 'YScale', 'log')
 xlabel('Iteration')
 ylabel('Sum of LS cost for all nodes (dB)')
