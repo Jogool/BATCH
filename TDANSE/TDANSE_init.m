@@ -17,48 +17,21 @@ function node = TDANSE_init(node,root,sim_param,DANSE_param)
 % email: joseph.szurley@esat.kuleuven.be
 % Oct. 2015; Last revision: 12-Oct-2015
 %------------- BEGIN CODE --------------
-% inital cost variable
-[node.cost] = deal(0);
+nb_ds = DANSE_param.desired_sources;
 %% generate initial local broadcast signals
 for idx_node = 1:DANSE_param.nb_nodes;    
-    for frame_idx = 1:sim_param.ds_idx;
+    % initalize broadcast signals
+    node(idx_node).loc_ZY = zeros(nb_ds,sim_param.fftL/2+1,sim_param.ds_idx);
+    node(idx_node).loc_ZN = zeros(nb_ds,sim_param.fftL/2+1,sim_param.n_idx);
+    for idx_z = 1:nb_ds
         for ll=1:sim_param.fftL/2+1
-            node(idx_node).loc_ZY(:,ll,frame_idx) = ...
-                node(idx_node).loc_filt_coeff(:,:,ll)'*node(idx_node).ds_frame(:,ll,frame_idx);
+            % find broadcast signals for every frame (sum(conj(W).*y = W'y)
+            node(idx_node).loc_ZY(idx_z,ll,:) = ...
+                sum(bsxfun(@times,conj(node(idx_node).P(:,idx_z,ll)),node(idx_node).ds_frame(:,ll,:)));
+            node(idx_node).loc_ZN(idx_z,ll,:) = ...
+                sum(bsxfun(@times,conj(node(idx_node).P(:,idx_z,ll)),node(idx_node).n_frame(:,ll,:)));
         end
     end
-    for frame_idx = 1:sim_param.n_idx;
-        for ll=1:sim_param.fftL/2+1
-            node(idx_node).loc_ZN(:,ll,frame_idx) = ...
-                node(idx_node).loc_filt_coeff(:,:,ll)'*node(idx_node).n_frame(:,ll,frame_idx);
-        end
-    end
-    % local broadcast signals in time domain (only used for cost calculation)
-    node(idx_node).loc_zy = ...
-        filterwithW([node(idx_node).ss_clean],node(idx_node).loc_filt_coeff);
-    node(idx_node).loc_zn = ...
-        filterwithW([node(idx_node).ss_noise],node(idx_node).loc_filt_coeff);
-    
 end
-node = TDANSE_ff(node,root,sim_param,DANSE_param);
-node = TDANSE_df(node,root,sim_param);
-
-for idx_node = 1:DANSE_param.nb_nodes;  
-    idx = node(idx_node).ff_rec;
-    % gather local signals and z-signals of other nodes
-    y = [node(idx_node).ss_clean + node(idx_node).ss_noise];
-    zy = [node(node(idx_node).ff_trans).df(idx_node).zy node(idx).ff_zy];
-    zn = [node(node(idx_node).ff_trans).df(idx_node).zn node(idx).ff_zn];
-    
-    % gather G coefficiens
-    Gkq_coeff = ...
-        cat(1,[node(idx_node).gkq(node(idx_node).ff_trans).coeff],cat(1,node(idx_node).gkq(idx).coeff));
-    
-    W = cat(1, node(idx_node).loc_filt_coeff, Gkq_coeff);
-    % estimated desired signal
-    dest = filterwithW([y zy+zn],W);
-    % calculate cost
-    node(idx_node).cost = ...
-        norm(node(idx_node).ss_clean(:,1:DANSE_param.desired_sources) - dest)^2;
-end
+node = TDANSE_cost(node,sim_param,DANSE_param);
 %------------- END OF CODE --------------

@@ -1,8 +1,8 @@
 function [] = batch_run(source_sig,noise_sig)
-% BATCH_RUN - wrapper for batch mode simulations 
+% BATCH_RUN - wrapper for batch mode simulations of the DANSE algorithm
 % Syntax:  [] = batch_run(source_sig,noise_sig)
-% Inputs:   source_sig      -   desired signal
-%           noise_sig       -   noise signal
+% Inputs:   source_sig      -   desired signals
+%           noise_sig       -   noise signals
 %                                                         
 % Outputs:  node            -   none
 %
@@ -94,9 +94,9 @@ while ~or(convergence,ge(ii,DANSE_param.max_iter))
     cost_sum_TDANSE = [cost_sum_TDANSE sum(cat(1,node.cost))];
     convergence =  norm(cat(1,node.cent_cost) - ...
         cellfun(@(x) x(end), {node.cost})') < DANSE_param.thresh;
-    ii = ii + 1;  
     % follow path of tree for updating order
     node_update=updateorder(rem(ii,numel(updateorder))+1);
+    ii = ii + 1; 
     msg = sprintf('Iteration : %d', ii);
     fprintf([reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
