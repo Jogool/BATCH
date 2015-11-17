@@ -34,5 +34,5 @@ DANSE_param.nb_nodes = sim_param.nb_nodes;                                  % nu
 DANSE_param.sensors = DANSE_param.desired_sources + 1;                      % number of sensors per node (assumed same across all nodes compression 
 DANSE_param.DANSE_update = 0;   
 DANSE_param.thresh = 1e-5;                                                  % stopping threshold for DANSE
-DANSE_param.max_iter = 250;                                                 % max iterations for DANSE
+DANSE_param.max_iter = 150;                                                 % max iterations for DANSE
 %------------- END OF CODE --------------

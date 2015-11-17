@@ -25,8 +25,6 @@ Ryy = zeros(node(node_update).sensors+ ...
     numel(idx_nodes)*DANSE_param.desired_sources);
 Rnn = Ryy;
 
-% find all nodes connected to node (note since root node is updating, there
-% is never any DF signals
 %% update correlation maticies
 Y = cat(1,node(node_update).ds_frame,cat(1,node(idx_nodes).ff_ZY));
 N = cat(1,node(node_update).n_frame,cat(1,node(idx_nodes).ff_ZN));

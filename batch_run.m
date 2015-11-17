@@ -40,6 +40,7 @@ cent_cost = [node.cent_cost];
 sum_cent_cost = sum([node.cent_cost]);
 % save orignal node
 org_node = node;
+
 %% DANSE
 fprintf('\n')
 disp('DANSE')
@@ -152,4 +153,3 @@ xlabel('Iteration')
 ylabel('Sum of LS cost for all nodes (dB)')
 axis tight
 %------------- END OF CODE --------------
-

@@ -15,7 +15,7 @@ function node = TDANSE_batch(node,sim_param,DANSE_param,node_update)
 %
 % Author: Joseph Szurley
 % email: joseph.szurley@esat.kuleuven.be
-% Oct. 2015; Last revision: 03-Nov2015
+% Oct. 2015; Last revision: 17-Nov2015
 %------------- BEGIN CODE --------------
 % fusion flow toward updating (root) node
 node = TDANSE_ff(node,node_update,sim_param,DANSE_param);
